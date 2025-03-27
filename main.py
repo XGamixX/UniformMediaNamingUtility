@@ -8,7 +8,7 @@ def main(thema, zeitoffset, copy, handeingabe, bvd_only):
     print('bvd_only:', bvd_only)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
     parser.add_argument('--thema', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
     parser.add_argument('--zeitoffset', default=0, help='Zeitverschiebung in Sekunden (Wunschzeit - Aufnahmezeit; default: 0)')
     copy_or_rename = parser.add_mutually_exclusive_group()
