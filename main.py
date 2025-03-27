@@ -31,7 +31,6 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only):
     for file in files:
         print(f'Bearbeite {file}...')
 
-
         file_name = os.path.basename(file)
         file_extension = os.path.splitext(file_name)[1]
         file_name = os.path.splitext(file_name)[0]
@@ -86,6 +85,9 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only):
         new_file_name += f"_{topic}"
 
         new_file_name += file_name[:10]
+
+        if time_offset:
+            new_file_name += f"_t{time_offset.total_seconds()}"
 
         new_file_name += file_extension
 
