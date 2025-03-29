@@ -8,12 +8,13 @@ import hachoir.metadata
 IMAGE_EXTENSIONS = (".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".ogv", ".h265", ".hevc")
 VIDEO_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".svg", ".heif", ".heic", ".ico")
 
-def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only):
+def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs):
     print('thema:', topic)
     print('zeitoffset:', time_offset)
     print('copy:', copy)
     print('handeingabe:', handeingabe)
     print('bvd_only:', bvd_only)
+    print('logs:', logs)
 
     if 'y' != input('Fortfahren? (y/n): ').lower():
         print('Abgebrochen.')
@@ -84,21 +85,21 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only):
 
         new_file_name += f"_{topic}"
 
-        new_file_name += file_name[:10]
+        new_file_name += f"_{file_name[:10]}"
 
         if time_offset:
-            new_file_name += f"_t{time_offset.total_seconds()}"
+            new_file_name += f"_t{int(abs(time_offset.total_seconds()))}"
 
         new_file_name += file_extension
 
         new_file_path = os.path.join(os.getcwd(), new_file_name)
 
         if copy:
-            print(f"Würde {file} nach {new_file_path} kopieren")
-            # os.system(f'copy "{file}" "{new_file_path}"') TODO: Uncomment this line to actually copy the file
+            print(f"Kopiert {file} nach {new_file_path}")
+            os.system(f'copy "{file}" "{new_file_path}"')
         else:
-            print(f"Würde {file} um in {new_file_path} benennen")
-            # os.rename(file, new_file_path) TODO: Uncomment this line to actually rename the file
+            print(f"Bennent {file} um in {new_file_path}")
+            os.rename(file, new_file_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
@@ -109,8 +110,9 @@ if __name__ == '__main__':
     copy_or_rename.add_argument('--copy', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
     parser.add_argument('--handeingabe', action='store_true', help='Fragt nach Handeingabe bei unklarem Datum (default: Erstelldatum)')
     parser.add_argument('--bvd_only', action='store_true', help='Bearbeitet ausschließlich bereits mit BVD umbenannte Dateien (default: überspringt diese)')
+    parser.add_argument('--logs', '-l', action='store_true', help='Erstellt ein Logfile mit den umbenannten Dateien (default: kein Logfile)')
     args = parser.parse_args()
     if not args.copy and not args.rename:
         args.rename = True
 
-    main(args.thema, datetime.timedelta(seconds=int(args.zeitoffset)), args.copy, args.handeingabe, args.bvd_only)
+    main(args.thema, datetime.timedelta(seconds=int(args.zeitoffset)), args.copy, args.handeingabe, args.bvd_only, args.logs)
