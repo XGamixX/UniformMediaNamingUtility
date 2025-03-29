@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import datetime
 import exifread
 import hachoir.parser
@@ -15,6 +16,10 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
     print('handeingabe:', handeingabe)
     print('bvd_only:', bvd_only)
     print('logs:', logs)
+
+    if logs:
+        sys.stdout = open('bvd.log', 'a')
+        print(f'[{datetime.datetime.now()}] BVD gestartet mit den Parametern: thema={topic}, zeitoffset={time_offset.total_seconds()}, copy={copy}, handeingabe={handeingabe}, bvd_only={bvd_only}, logs={logs}')
 
     if 'y' != input('Fortfahren? (y/n): ').lower():
         print('Abgebrochen.')
