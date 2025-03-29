@@ -9,21 +9,22 @@ import hachoir.metadata
 IMAGE_EXTENSIONS = (".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".ogv", ".h265", ".hevc")
 VIDEO_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".svg", ".heif", ".heic", ".ico")
 
-def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs):
-    print('thema:', topic)
-    print('zeitoffset:', time_offset)
-    print('copy:', copy)
-    print('handeingabe:', handeingabe)
-    print('bvd_only:', bvd_only)
-    print('logs:', logs)
+def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
+    if not force:
+        print('thema:', topic)
+        print('zeitoffset:', time_offset)
+        print('copy:', copy)
+        print('handeingabe:', handeingabe)
+        print('bvd_only:', bvd_only)
+        print('logs:', logs)
+
+        if 'y' != input('Fortfahren? (y/n): ').lower():
+            print('Abgebrochen.')
+            return
 
     if logs:
         sys.stdout = open('bvd.log', 'a')
         print(f'[{datetime.datetime.now()}] BVD gestartet mit den Parametern: thema={topic}, zeitoffset={time_offset.total_seconds()}, copy={copy}, handeingabe={handeingabe}, bvd_only={bvd_only}, logs={logs}')
-
-    if 'y' != input('Fortfahren? (y/n): ').lower():
-        print('Abgebrochen.')
-        return
 
     files = os.listdir('.')
     files = [f for f in files if (not f.startswith('BVD_')) ^ bvd_only]
@@ -74,7 +75,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
                 print(f"Kein Datum gefunden in {file}. Überspringe Datei.")
                 continue
 
-        time += time_offset
+        time -= time_offset
 
         count = 0
         while True:
@@ -108,16 +109,17 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
-    parser.add_argument('--thema', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
-    parser.add_argument('--zeitoffset', default=0, help='Zeitverschiebung in Sekunden (Wunschzeit - Aufnahmezeit; default: 0)')
+    parser.add_argument('--thema', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
+    parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Sekunden (Aufnahmezeit - Wunschzeit; default: 0)')
     copy_or_rename = parser.add_mutually_exclusive_group()
-    copy_or_rename.add_argument('--rename', action='store_true', help='Benennt die Dateien um (default)')
-    copy_or_rename.add_argument('--copy', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
-    parser.add_argument('--handeingabe', action='store_true', help='Fragt nach Handeingabe bei unklarem Datum (default: Erstelldatum)')
-    parser.add_argument('--bvd_only', action='store_true', help='Bearbeitet ausschließlich bereits mit BVD umbenannte Dateien (default: überspringt diese)')
+    copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
+    copy_or_rename.add_argument('--copy', '-c', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
+    parser.add_argument('--manual', '-m', action='store_true', help='Fragt nach Handeingabe bei unklarem Datum (default: Erstelldatum)')
+    parser.add_argument('--bvd_only', '-b', action='store_true', help='Bearbeitet ausschließlich bereits mit BVD umbenannte Dateien (default: überspringt diese)')
     parser.add_argument('--logs', '-l', action='store_true', help='Erstellt ein Logfile mit den umbenannten Dateien (default: kein Logfile)')
+    parser.add_argument('--force', '-f', action='store_true', help='Erzwingt die Ausführung ohne Bestätigungsaufforderung')
     args = parser.parse_args()
     if not args.copy and not args.rename:
         args.rename = True
 
-    main(args.thema, datetime.timedelta(seconds=int(args.zeitoffset)), args.copy, args.handeingabe, args.bvd_only, args.logs)
+    main(args.thema, datetime.timedelta(seconds=int(args.zeitoffset)), args.copy, args.handeingabe, args.bvd_only, args.logs, args.force)
