@@ -9,6 +9,23 @@ import hachoir.metadata
 IMAGE_EXTENSIONS = (".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".ogv", ".h265", ".hevc")
 VIDEO_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".svg", ".heif", ".heic", ".ico")
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
+    parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
+    parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Sekunden (Aufnahmezeit - Wunschzeit; default: 0)')
+    copy_or_rename = parser.add_mutually_exclusive_group()
+    copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
+    copy_or_rename.add_argument('--copy', '-c', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
+    parser.add_argument('--manual', '-m', action='store_true', help='Fragt nach Handeingabe bei unklarem Datum (default: Erstelldatum)')
+    parser.add_argument('--bvd_only', '-b', action='store_true', help='Bearbeitet ausschließlich bereits mit BVD umbenannte Dateien (default: überspringt diese)')
+    parser.add_argument('--logs', '-l', action='store_true', help='Erstellt ein Logfile mit den umbenannten Dateien (default: kein Logfile)')
+    parser.add_argument('--force', '-f', action='store_true', help='Erzwingt die Ausführung ohne Bestätigungsaufforderung')
+    args = parser.parse_args()
+    if not args.copy and not args.rename:
+        args.rename = True
+
+    return args
+
 def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
     if not force:
         print('thema:', topic)
@@ -108,18 +125,6 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
             os.rename(file, new_file_path)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
-    parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
-    parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Sekunden (Aufnahmezeit - Wunschzeit; default: 0)')
-    copy_or_rename = parser.add_mutually_exclusive_group()
-    copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
-    copy_or_rename.add_argument('--copy', '-c', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
-    parser.add_argument('--manual', '-m', action='store_true', help='Fragt nach Handeingabe bei unklarem Datum (default: Erstelldatum)')
-    parser.add_argument('--bvd_only', '-b', action='store_true', help='Bearbeitet ausschließlich bereits mit BVD umbenannte Dateien (default: überspringt diese)')
-    parser.add_argument('--logs', '-l', action='store_true', help='Erstellt ein Logfile mit den umbenannten Dateien (default: kein Logfile)')
-    parser.add_argument('--force', '-f', action='store_true', help='Erzwingt die Ausführung ohne Bestätigungsaufforderung')
-    args = parser.parse_args()
-    if not args.copy and not args.rename:
-        args.rename = True
+    parsed_args = parse_args()
 
-    main(args.topic, datetime.timedelta(seconds=int(args.offset_time)), args.copy, args.manual, args.bvd_only, args.logs, args.force)
+    main(parsed_args.topic, datetime.timedelta(seconds=int(parsed_args.offset_time)), parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs, parsed_args.force)
