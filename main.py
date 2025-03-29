@@ -29,7 +29,7 @@ def parse_args():
 def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
     if not force:
         print('thema:', topic)
-        print('zeitoffset:', time_offset)
+        print('zeitoffset:', "-" if time_offset.total_seconds() < 0 else "", datetime.timedelta(seconds=abs(time_offset.total_seconds())))
         print('copy:', copy)
         print('handeingabe:', handeingabe)
         print('bvd_only:', bvd_only)
