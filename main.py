@@ -23,8 +23,27 @@ def parse_args():
     args = parser.parse_args()
     if not args.copy and not args.rename:
         args.rename = True
-
     return args
+
+def extract_time(file):
+    time = None
+    if file.lower().endswith(IMAGE_EXTENSIONS):
+        with open(file, 'rb') as f:
+            tags = exifread.process_file(f)
+            if 'EXIF DateTimeOriginal' in tags:
+                time = str(tags['EXIF DateTimeOriginal'])
+                time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
+            else:
+                print(f"EXIF-Daten nicht gefunden in {file}")
+    elif file.lower().endswith(VIDEO_EXTENSIONS):
+        with open(file, 'rb') as f:
+            parser = hachoir.parser.createParser(f)
+            metadata = hachoir.metadata.extractMetadata(parser)
+            if metadata and metadata.has("creation_date"):
+                time = metadata.get("creation_date")
+            else:
+                print(f"Metadaten nicht gefunden in {file}")
+    return time
 
 def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
     if not force:
@@ -59,23 +78,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
         file_extension = os.path.splitext(file_name)[1]
         file_name = os.path.splitext(file_name)[0]
 
-        time = None
-        if file.lower().endswith(IMAGE_EXTENSIONS):
-            with open(file, 'rb') as f:
-                tags = exifread.process_file(f)
-                if 'EXIF DateTimeOriginal' in tags:
-                    time = str(tags['EXIF DateTimeOriginal'])
-                    time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
-                else:
-                    print(f"EXIF-Daten nicht gefunden in {file}")
-        elif file.lower().endswith(VIDEO_EXTENSIONS):
-            with open(file, 'rb') as f:
-                parser = hachoir.parser.createParser(f)
-                metadata = hachoir.metadata.extractMetadata(parser)
-                if metadata and metadata.has("creation_date"):
-                    time = metadata.get("creation_date")
-                else:
-                    print(f"Metadaten nicht gefunden in {file}")
+        time = extract_time(file)
 
         handeingabe_used = False
         if time is None:
