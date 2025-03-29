@@ -109,7 +109,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
-    parser.add_argument('--thema', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
+    parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
     parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Sekunden (Aufnahmezeit - Wunschzeit; default: 0)')
     copy_or_rename = parser.add_mutually_exclusive_group()
     copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
@@ -122,4 +122,4 @@ if __name__ == '__main__':
     if not args.copy and not args.rename:
         args.rename = True
 
-    main(args.thema, datetime.timedelta(seconds=int(args.zeitoffset)), args.copy, args.handeingabe, args.bvd_only, args.logs, args.force)
+    main(args.topic, datetime.timedelta(seconds=int(args.offset_time)), args.copy, args.manual, args.bvd_only, args.logs, args.force)
