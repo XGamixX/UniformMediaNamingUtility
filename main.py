@@ -116,6 +116,10 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
                 if time is None:
                     print(f"Ungültiges Datum: {date_input}")
                     continue
+                print(f"Datum erkannt: {time}")
+                if 'y' != input("Datum korrekt? (y/n): ").lower():
+                    print("Abgebrochen.")
+                    continue
                 handeingabe_used = True
             else:
                 creation_time = os.path.getctime(file)
