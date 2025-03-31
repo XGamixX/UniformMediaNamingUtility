@@ -9,8 +9,8 @@ import re
 import hachoir.parser
 import hachoir.metadata
 
-IMAGE_EXTENSIONS = (".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".ogv", ".h265", ".hevc")
-VIDEO_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".svg", ".heif", ".heic", ".ico")
+IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".svg", ".heif", ".heic", ".ico")
+VIDEO_EXTENSIONS = (".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".ogv", ".h265", ".hevc")
 
 def parse_args():
     parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
@@ -61,7 +61,6 @@ def extract_time(file):
             tags = exifread.process_file(f)
             if 'EXIF DateTimeOriginal' in tags:
                 time = str(tags['EXIF DateTimeOriginal'])
-                print(f"EXIF-Datum gefunden in {file}: {time}") # TODO: remove debug
                 time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
             else:
                 print(f"EXIF-Daten nicht gefunden in {file}")
@@ -91,7 +90,6 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
 
     if logs:
         sys.stdout = open('bvd.log', 'a')
-        sys.stderr = open('bvd.log', 'a') # TODO: remove debug
         print(f'[{datetime.datetime.now()}] BVD gestartet mit den Parametern: thema={topic}, zeitoffset={time_offset.total_seconds()}, copy={copy}, handeingabe={handeingabe}, bvd_only={bvd_only}, logs={logs}')
 
     files = os.listdir('.')
