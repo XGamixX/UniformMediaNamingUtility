@@ -61,6 +61,7 @@ def extract_time(file):
             tags = exifread.process_file(f)
             if 'EXIF DateTimeOriginal' in tags:
                 time = str(tags['EXIF DateTimeOriginal'])
+                print(repr(time))
                 time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
             else:
                 print(f"EXIF-Daten nicht gefunden in {file}")
