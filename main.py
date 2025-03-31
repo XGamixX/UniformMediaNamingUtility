@@ -150,7 +150,7 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
         while True:
             if count > 0:
                 new_file_name += f"_{count}"
-            if any(f == new_file_name + file_extension for f in os.listdir('.')):
+            if os.path.exists(os.path.join(os.getcwd(), new_file_name + file_extension)):
                 count += 1
             else:
                 break
@@ -158,6 +158,10 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
         new_file_name += file_extension
 
         new_file_path = os.path.join(os.getcwd(), new_file_name)
+
+        if os.path.exists(new_file_path):
+            print(f"Datei {new_file_path} existiert bereits. Abgebrochen.")
+            continue
 
         if copy:
             print(f"Kopiert {file} nach {new_file_path}")
