@@ -113,7 +113,7 @@ def rename(topic, timezone, time_offset: datetime.timedelta, copy, handeingabe, 
         file_extension = os.path.splitext(file_name)[1]
         file_name = os.path.splitext(file_name)[0]
 
-        time = extract_time(file)
+        time = extract_time(file, timezone)
 
         handeingabe_used = False
         modification_time_used = False
