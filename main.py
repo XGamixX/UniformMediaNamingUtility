@@ -18,7 +18,7 @@ def parse_args():
 
     rename_parser = subparsers.add_parser('rename', help='Bilder und Videos umbenennen')
     rename_parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
-    rename_parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Worten (Aufnahmezeit - Wunschzeit; default: 0)')
+    rename_parser.add_argument('--offset_time', '-o', default='', help='Zeitverschiebung in Worten (Aufnahmezeit - Wunschzeit; default: 0)')
     copy_or_rename = rename_parser.add_mutually_exclusive_group()
     copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
     copy_or_rename.add_argument('--copy', '-c', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
