@@ -105,7 +105,7 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
         return
 
     for file in files:
-        print(f'Bearbeite {file}...')
+        print(f'\nBearbeite {file}...')
 
         file_name = os.path.basename(file)
         file_extension = os.path.splitext(file_name)[1]
