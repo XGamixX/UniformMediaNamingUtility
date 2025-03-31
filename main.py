@@ -82,6 +82,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
 
         if 'y' != input('Fortfahren? (y/n): ').lower():
             print('Abgebrochen.')
+            print("\n\n\n")
             return
 
     if logs:
@@ -95,6 +96,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
 
     if not files:
         print('Keine Dateien gefunden.')
+        print("\n\n\n")
         return
 
     for file in files:
@@ -147,7 +149,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
         new_file_name += f"_{file_name[:10]}"
 
         if time_offset:
-            new_file_name += f"_t{int(abs(time_offset.total_seconds()))}"
+            new_file_name += f"_t{int(abs(time_offset.total_seconds())/60)}"
 
         new_file_name += file_extension
 
@@ -159,6 +161,12 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
         else:
             print(f"Bennent {file} um in {new_file_path}")
             os.rename(file, new_file_path)
+
+    if logs:
+        print("\n\n\n")
+        sys.stdout.close()
+        sys.stdout = sys.__stdout__
+        print(f'[{datetime.datetime.now()}] BVD abgeschlossen.')
 
 if __name__ == '__main__':
     if platform.system() != 'Windows':
