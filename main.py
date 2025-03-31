@@ -6,6 +6,7 @@ import datetime
 import dateparser
 import exifread
 import re
+import zoneinfo
 import hachoir.parser
 import hachoir.metadata
 
@@ -18,6 +19,7 @@ def parse_args():
 
     rename_parser = subparsers.add_parser('rename', help='Bilder und Videos umbenennen')
     rename_parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
+    rename_parser.add_argument('--timezone', '-z', default='Europe/Berlin', help='Zeitzone für die Zeitverschiebung (default: Europe/Berlin)')
     rename_parser.add_argument('--offset_time', '-o', default='', help='Zeitverschiebung in Worten (Aufnahmezeit - Wunschzeit; default: 0)')
     copy_or_rename = rename_parser.add_mutually_exclusive_group()
     copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
@@ -54,7 +56,7 @@ def parse_duration(time_str):
 
     return datetime.timedelta(seconds=total_seconds)
 
-def extract_time(file):
+def extract_time(file, timezone):
     time = None
     if file.lower().endswith(IMAGE_EXTENSIONS):
         with open(file, 'rb') as f:
@@ -70,13 +72,15 @@ def extract_time(file):
             metadata = hachoir.metadata.extractMetadata(parser)
             if metadata and metadata.has("creation_date"):
                 time = metadata.get("creation_date")
+                time.replace(tzinfo=zoneinfo.ZoneInfo("UTC")).astimezone(zoneinfo.ZoneInfo(timezone))
             else:
                 print(f"Metadaten nicht gefunden in {file}")
     return time
 
-def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
+def rename(topic, timezone, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
     if not force:
         print('thema:', topic)
+        print('zeitverschiebung:', timezone)
         print('zeitoffset:', "-" if time_offset.total_seconds() < 0 else "", datetime.timedelta(seconds=abs(time_offset.total_seconds())))
         print('copy:', copy)
         print('handeingabe:', handeingabe)
@@ -184,7 +188,7 @@ def main():
         sys.exit(1)
     elif parsed_args.command == 'rename':
         offset_time = parse_duration(parsed_args.offset_time)
-        rename(parsed_args.topic, offset_time, parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs,
+        rename(parsed_args.topic, parsed_args.timezone, offset_time, parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs,
              parsed_args.force)
     else:
         print('Unbekannter Befehl:', parsed_args.command)
