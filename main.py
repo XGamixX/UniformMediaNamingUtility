@@ -14,15 +14,21 @@ VIDEO_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".
 
 def parse_args():
     parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
-    parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
-    parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Worten (Aufnahmezeit - Wunschzeit; default: 0)')
-    copy_or_rename = parser.add_mutually_exclusive_group()
+    subparsers = parser.add_subparsers(dest='command', required=True, help='Liste der Befehle')
+
+    rename_parser = subparsers.add_parser('rename', help='Bilder und Videos umbenennen')
+    rename_parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
+    rename_parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Worten (Aufnahmezeit - Wunschzeit; default: 0)')
+    copy_or_rename = rename_parser.add_mutually_exclusive_group()
     copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
     copy_or_rename.add_argument('--copy', '-c', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
-    parser.add_argument('--manual', '-m', action='store_true', help='Fragt nach Handeingabe bei unklarem Datum (default: Erstelldatum)')
-    parser.add_argument('--bvd_only', '-b', action='store_true', help='Bearbeitet ausschließlich bereits mit BVD umbenannte Dateien (default: überspringt diese)')
-    parser.add_argument('--logs', '-l', action='store_true', help='Erstellt ein Logfile mit den umbenannten Dateien (default: kein Logfile)')
-    parser.add_argument('--force', '-f', action='store_true', help='Erzwingt die Ausführung ohne Bestätigungsaufforderung')
+    rename_parser.add_argument('--manual', '-m', action='store_true', help='Fragt nach Handeingabe bei unklarem Datum (default: Erstelldatum)')
+    rename_parser.add_argument('--bvd_only', '-b', action='store_true', help='Bearbeitet ausschließlich bereits mit BVD umbenannte Dateien (default: überspringt diese)')
+    rename_parser.add_argument('--logs', '-l', action='store_true', help='Erstellt ein Logfile mit den umbenannten Dateien (default: kein Logfile)')
+    rename_parser.add_argument('--force', '-f', action='store_true', help='Erzwingt die Ausführung ohne Bestätigungsaufforderung')
+
+    snapchat_parser = subparsers.add_parser('snapchat', help='Bilder und Videos von Snapchat umbenennen')
+
     args = parser.parse_args()
     if not args.copy and not args.rename:
         args.rename = True
@@ -71,7 +77,7 @@ def extract_time(file):
                 print(f"Metadaten nicht gefunden in {file}")
     return time
 
-def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
+def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, logs, force):
     if not force:
         print('thema:', topic)
         print('zeitoffset:', "-" if time_offset.total_seconds() < 0 else "", datetime.timedelta(seconds=abs(time_offset.total_seconds())))
@@ -168,11 +174,23 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
         sys.stdout = sys.__stdout__
         print(f'[{datetime.datetime.now()}] BVD abgeschlossen.')
 
+def main():
+    parsed_args = parse_args()
+
+    if parsed_args.command == 'snapchat':
+        print('Snapchat-Funktion ist noch nicht implementiert.')
+        sys.exit(1)
+    elif parsed_args.command == 'rename':
+        offset_time = parse_duration(parsed_args.offset_time)
+        rename(parsed_args.topic, offset_time, parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs,
+             parsed_args.force)
+    else:
+        print('Unbekannter Befehl:', parsed_args.command)
+        sys.exit(1)
+
 if __name__ == '__main__':
     if platform.system() != 'Windows':
         print('Dieses Skript ist nur für Windows-Betriebssysteme geeignet.')
         sys.exit(1)
 
-    parsed_args = parse_args()
-    offset_time = parse_duration(parsed_args.offset_time)
-    main(parsed_args.topic, offset_time, parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs, parsed_args.force)
+    main()
