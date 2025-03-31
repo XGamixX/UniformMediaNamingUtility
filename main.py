@@ -46,9 +46,6 @@ def parse_duration(time_str):
 
     matches = re.findall(r"(\d*\.?\d+)\s*(h|m|s)", time_str)
 
-    if not matches:
-        return None
-
     total_seconds = 0
     time_units = {"h": 3600, "m": 60, "s": 1}
 
