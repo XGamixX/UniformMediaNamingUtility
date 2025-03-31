@@ -72,7 +72,7 @@ def extract_time(file, timezone):
             metadata = hachoir.metadata.extractMetadata(parser)
             if metadata and metadata.has("creation_date"):
                 time = metadata.get("creation_date")
-                time.replace(tzinfo=zoneinfo.ZoneInfo("UTC")).astimezone(zoneinfo.ZoneInfo(timezone))
+                time = time.replace(tzinfo=zoneinfo.ZoneInfo("UTC")).astimezone(zoneinfo.ZoneInfo(timezone))
             else:
                 print(f"Metadaten nicht gefunden in {file}")
     return time
