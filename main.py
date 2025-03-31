@@ -142,7 +142,7 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
                 new_file_name += "e"
             if count > 0:
                 new_file_name += f"_{count}"
-            if any(f.startswith(new_file_name) for f in files):
+            if any(f.startswith(new_file_name) for f in os.listdir('.')):
                 count += 1
             else:
                 break
