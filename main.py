@@ -133,19 +133,11 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
 
         time -= time_offset
 
-        count = 0
-        while True:
-            new_file_name = f"BVD_{time.strftime('%Y%m%d_%H%M%S')}"
-            if handeingabe_used:
-                new_file_name += "h"
-            elif modification_time_used:
-                new_file_name += "e"
-            if count > 0:
-                new_file_name += f"_{count}"
-            if any(f.startswith(new_file_name) for f in os.listdir('.')):
-                count += 1
-            else:
-                break
+        new_file_name = f"BVD_{time.strftime('%Y%m%d_%H%M%S')}"
+        if handeingabe_used:
+            new_file_name += "h"
+        elif modification_time_used:
+            new_file_name += "e"
 
         new_file_name += f"_{topic}"
 
@@ -153,6 +145,15 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
 
         if time_offset:
             new_file_name += f"_t{int(abs(time_offset.total_seconds())/60)}"
+
+        count = 0
+        while True:
+            if count > 0:
+                new_file_name += f"_{count}"
+            if any(f == new_file_name + file_extension for f in os.listdir('.')):
+                count += 1
+            else:
+                break
 
         new_file_name += file_extension
 
