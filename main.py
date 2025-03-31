@@ -109,7 +109,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
         time = extract_time(file)
 
         handeingabe_used = False
-        creation_time_used = False
+        modification_time_used = False
         if time is None:
             if handeingabe:
                 print(f"Kein Datum gefunden in {file}. Bitte Datum eingeben:")
@@ -124,9 +124,9 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
                     continue
                 handeingabe_used = True
             else:
-                creation_time = os.path.getctime(file)
-                time = datetime.datetime.fromtimestamp(creation_time)
-                creation_time_used = True
+                modification_time = os.path.getmtime(file)
+                time = datetime.datetime.fromtimestamp(modification_time)
+                modification_time_used = True
 
         time -= time_offset
 
@@ -135,7 +135,7 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
             new_file_name = f"BVD_{time.strftime('%Y%m%d_%H%M%S')}"
             if handeingabe_used:
                 new_file_name += "h"
-            elif creation_time_used:
+            elif modification_time_used:
                 new_file_name += "e"
             if count > 0:
                 new_file_name += f"_{count}"
