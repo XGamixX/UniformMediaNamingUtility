@@ -1,8 +1,11 @@
+import platform
 import argparse
 import os
 import sys
 import datetime
+import dateparser
 import exifread
+import re
 import hachoir.parser
 import hachoir.metadata
 
@@ -12,7 +15,7 @@ VIDEO_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".
 def parse_args():
     parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
     parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Verzeichnis liegenden Bilder und Videos (default: Diverses)')
-    parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Sekunden (Aufnahmezeit - Wunschzeit; default: 0)')
+    parser.add_argument('--offset_time', '-o', default=0, help='Zeitverschiebung in Worten (Aufnahmezeit - Wunschzeit; default: 0)')
     copy_or_rename = parser.add_mutually_exclusive_group()
     copy_or_rename.add_argument('--rename', '-r', action='store_true', help='Benennt die Dateien um (default)')
     copy_or_rename.add_argument('--copy', '-c', action='store_true', help='Erstellt Kopien der Dateien (alternative zu --rename)')
@@ -24,6 +27,29 @@ def parse_args():
     if not args.copy and not args.rename:
         args.rename = True
     return args
+
+def parse_duration(time_str):
+    if time_str.isdigit():
+        return datetime.timedelta(minutes=int(time_str))
+
+    base_time = datetime.datetime(2000, 1, 1)
+    dt = dateparser.parse(time_str, languages=["de"], settings={'RELATIVE_BASE': base_time})
+
+    if dt:
+        return dt - base_time
+
+    matches = re.findall(r"(\d*\.?\d+)\s*(h|m|s)", time_str)
+
+    if not matches:
+        return None
+
+    total_seconds = 0
+    time_units = {"h": 3600, "m": 60, "s": 1}
+
+    for value, unit in matches:
+        total_seconds += float(value) * time_units[unit]
+
+    return datetime.timedelta(seconds=total_seconds)
 
 def extract_time(file):
     time = None
@@ -81,19 +107,20 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
         time = extract_time(file)
 
         handeingabe_used = False
+        creation_time_used = False
         if time is None:
             if handeingabe:
-                print(f"Kein Datum gefunden in {file}. Bitte Datum eingeben (YYYY-MM-DD HH:MM:SS):")
+                print(f"Kein Datum gefunden in {file}. Bitte Datum eingeben:")
                 date_input = input()
-                try:
-                    time = datetime.datetime.strptime(date_input, '%Y-%m-%d %H:%M:%S')
-                    handeingabe_used = True
-                except ValueError:
-                    print("Ungültiges Datum. Überspringe Datei.")
+                time = dateparser.parse(date_input, languages=["de", "en"])
+                if time is None:
+                    print(f"Ungültiges Datum: {date_input}")
                     continue
+                handeingabe_used = True
             else:
-                print(f"Kein Datum gefunden in {file}. Überspringe Datei.")
-                continue
+                creation_time = os.path.getctime(file)
+                time = datetime.datetime.fromtimestamp(creation_time)
+                creation_time_used = True
 
         time -= time_offset
 
@@ -102,6 +129,8 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
             new_file_name = f"BVD_{time.strftime('%Y%m%d_%H%M%S')}"
             if handeingabe_used:
                 new_file_name += "h"
+            elif creation_time_used:
+                new_file_name += "e"
             if count > 0:
                 new_file_name += f"_{count}"
             if any(f.startswith(new_file_name) for f in files):
@@ -128,6 +157,10 @@ def main(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, lo
             os.rename(file, new_file_path)
 
 if __name__ == '__main__':
-    parsed_args = parse_args()
+    if platform.system() != 'Windows':
+        print('Dieses Skript ist nur für Windows-Betriebssysteme geeignet.')
+        sys.exit(1)
 
-    main(parsed_args.topic, datetime.timedelta(seconds=int(parsed_args.offset_time)), parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs, parsed_args.force)
+    parsed_args = parse_args()
+    offset_time = parse_duration(parsed_args.offset_time)
+    main(parsed_args.topic, offset_time, parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs, parsed_args.force)
