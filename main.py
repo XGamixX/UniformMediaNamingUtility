@@ -152,7 +152,8 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
                 count += 1
             else:
                 break
-        new_file_name += f"_{count}"
+        if count > 0:
+            new_file_name += f"_{count}"
 
         new_file_name += file_extension
 
