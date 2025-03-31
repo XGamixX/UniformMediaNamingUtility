@@ -61,7 +61,7 @@ def extract_time(file):
             tags = exifread.process_file(f)
             if 'EXIF DateTimeOriginal' in tags:
                 time = str(tags['EXIF DateTimeOriginal'])
-                print(repr(time))
+                print(repr(time)) # TODO: remove debug
                 time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
             else:
                 print(f"EXIF-Daten nicht gefunden in {file}")
@@ -91,7 +91,7 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
 
     if logs:
         sys.stdout = open('bvd.log', 'a')
-        sys.stderr = open('bvd.log', 'a')
+        sys.stderr = open('bvd.log', 'a') # TODO: remove debug
         print(f'[{datetime.datetime.now()}] BVD gestartet mit den Parametern: thema={topic}, zeitoffset={time_offset.total_seconds()}, copy={copy}, handeingabe={handeingabe}, bvd_only={bvd_only}, logs={logs}')
 
     files = os.listdir('.')
