@@ -148,12 +148,11 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
 
         count = 0
         while True:
-            if count > 0:
-                new_file_name += f"_{count}"
-            if os.path.exists(os.path.join(os.getcwd(), new_file_name + file_extension)):
+            if os.path.exists(os.path.join(os.getcwd(), f"{new_file_name}{count if count>0 else ""}{file_extension}")):
                 count += 1
             else:
                 break
+        new_file_name += f"_{count}"
 
         new_file_name += file_extension
 
