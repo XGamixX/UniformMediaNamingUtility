@@ -90,6 +90,7 @@ def rename(topic, time_offset: datetime.timedelta, copy, handeingabe, bvd_only, 
 
     if logs:
         sys.stdout = open('bvd.log', 'a')
+        sys.stderr = open('bvd.log', 'a')
         print(f'[{datetime.datetime.now()}] BVD gestartet mit den Parametern: thema={topic}, zeitoffset={time_offset.total_seconds()}, copy={copy}, handeingabe={handeingabe}, bvd_only={bvd_only}, logs={logs}')
 
     files = os.listdir('.')
