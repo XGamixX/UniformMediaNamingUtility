@@ -7,9 +7,9 @@ set PYTHON_EXE=%VENV_DIR%\Scripts\python.exe
 set REQUIREMENTS=%SCRIPT_DIR%\src\requirements.txt
 set SCRIPT=%SCRIPT_DIR%\src\main.py
 
-set PATH=%PATH%;%SCRIPT_DIR%
+set PATH=%PATH%;%SCRIPT_DIR% >nul
 
-setx PATH "%PATH%;%SCRIPT_DIR%"
+setx PATH "%PATH%;%SCRIPT_DIR%" >nul
 
 if not exist "%PYTHON_EXE%" (
     echo Creating virtual environment...
