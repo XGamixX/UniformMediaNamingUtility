@@ -26,7 +26,7 @@ def download_file(url):
         elif "text/plain" in content_type:
             print("Plain text response received. Content: ")
             print(response.text)  # Print out the plain text response
-            aws_url_match = re.search(r'(https?://[^\s]+amazonaws.com[^\s"\']*)', response.text)
+            aws_url_match = re.search(r'(https?://\S+amazonaws.com[^\s"\']*)', response.text)
             if aws_url_match:
                 aws_url = aws_url_match.group(0)
                 print(f"Found AWS URL: {aws_url}")
