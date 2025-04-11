@@ -1,3 +1,5 @@
 hachoir
 exifread
 dateparser
+requests
+pillow
