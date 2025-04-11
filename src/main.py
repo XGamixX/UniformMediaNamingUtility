@@ -37,7 +37,6 @@ def main():
 
     if parsed_args.command == 'snapchat':
         snapchatexport.snapchatexport(parsed_args.topic, parsed_args.json_file, parsed_args.log, parsed_args.force)
-        sys.exit(1)
     elif parsed_args.command == 'rename':
         rename.rename(parsed_args.topic, parsed_args.timezone, parsed_args.offset_time, parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.logs,
              parsed_args.force)
