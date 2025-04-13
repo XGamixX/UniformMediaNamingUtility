@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import datetime
+import zoneinfo
 
 def download_file(url):
     parts = url.split("?", 1)
@@ -47,7 +48,7 @@ def download_file(url):
         print(f"Failed to download file. Status: {response.status_code}")
         return None
 
-def add_metadata_to_image(image_data, date_str, timezone="UTC"):
+def add_metadata_to_image_and_save(image_data, date_str, topic, timezone="UTC"):
     try:
         image = Image.open(image_data)
     except Exception as e:
@@ -55,7 +56,7 @@ def add_metadata_to_image(image_data, date_str, timezone="UTC"):
         return
 
     date = datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
-    date = date.replace(tzinfo=datetime.timezone.utc).astimezone(datetime.timezone.utc)
+    date = date.replace(tzinfo=zoneinfo.ZoneInfo("UTC")).astimezone(zoneinfo.ZoneInfo(timezone))
     date_exif = date.strftime("%Y:%m:%d %H:%M:%S")
 
     exif_data = image.getexif()
@@ -65,12 +66,32 @@ def add_metadata_to_image(image_data, date_str, timezone="UTC"):
     datetime_digitized_tag = 36867
     exif_data[datetime_digitized_tag] = date_exif
 
-    save_directory = "snapchat"
-    os.makedirs(save_directory, exist_ok=True)
-    save_path = f"{save_directory}/{date_str.replace(':', '-')}.jpg"
+    new_file_name = f"BVD_{date.strftime('%Y%m%d_%H%M%S')}"
 
-    image.save(save_path, exif=exif_data)
-    print(f"Image saved with date metadata: {date_exif} at {save_path}")
+    new_file_name += f"_{topic}"
+
+    file_extension = ".jpg"
+
+    count = 0
+    while True:
+        if os.path.exists(
+                os.path.join(os.getcwd(), new_file_name + (f"_{count}" if count > 0 else "") + file_extension)):
+            count += 1
+        else:
+            break
+    if count > 0:
+        new_file_name += f"_{count}"
+
+    new_file_name += file_extension
+
+    new_file_path = os.path.join(os.getcwd(), new_file_name)
+
+    if os.path.exists(new_file_path):
+        print(f"Datei {new_file_path} existiert bereits. Abgebrochen.")
+        return
+
+    print(f"Speichert Datei unter {new_file_path}")
+    image.save(new_file_path, exif=exif_data)
 
 def snapchatexport(topic, timezone, json_file_path, log, force):
     if not force:
@@ -96,7 +117,7 @@ def snapchatexport(topic, timezone, json_file_path, log, force):
 
             image_data = download_file(download_link)
             if image_data:
-                add_metadata_to_image(image_data, date, timezone)
+                add_metadata_to_image_and_save(image_data, date, topic, timezone)
             else:
                 print(f"Failed to download or process image from {download_link}")
     finally:
