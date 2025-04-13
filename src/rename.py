@@ -71,86 +71,88 @@ def rename(topic, timezone, offset_time, copy, handeingabe, bvd_only, log, force
         sys.stdout = open('bvd.log', 'a')
         print(f'[{datetime.datetime.now()}] BVD (rename) gestartet mit den Parametern: thema={topic}, zeitoffset={time_offset.total_seconds()}, copy={copy}, handeingabe={handeingabe}, bvd_only={bvd_only}, logs={log}')
 
-    files = os.listdir('.')
-    files = [f for f in files if (not f.startswith('BVD_')) ^ bvd_only]
-    files = [os.path.join(os.getcwd(), f) for f in files if os.path.isfile(f)]
-    files = [f for f in files if f.lower().endswith(IMAGE_EXTENSIONS + VIDEO_EXTENSIONS)]
+    try:
+        files = os.listdir('.')
+        files = [f for f in files if (not f.startswith('BVD_')) ^ bvd_only]
+        files = [os.path.join(os.getcwd(), f) for f in files if os.path.isfile(f)]
+        files = [f for f in files if f.lower().endswith(IMAGE_EXTENSIONS + VIDEO_EXTENSIONS)]
 
-    if not files:
-        print('Keine Dateien gefunden.')
-        print("\n\n\n")
-        return
+        if not files:
+            print('Keine Dateien gefunden.')
+            print("\n\n\n")
+            return
 
-    for file in files:
-        print(f'\nBearbeite {file}...')
+        for file in files:
+            print(f'\nBearbeite {file}...')
 
-        file_name = os.path.basename(file)
-        file_extension = os.path.splitext(file_name)[1]
-        file_name = os.path.splitext(file_name)[0]
+            file_name = os.path.basename(file)
+            file_extension = os.path.splitext(file_name)[1]
+            file_name = os.path.splitext(file_name)[0]
 
-        time = extract_time(file, timezone)
+            time = extract_time(file, timezone)
 
-        handeingabe_used = False
-        modification_time_used = False
-        if time is None:
-            if handeingabe:
-                print(f"Kein Datum gefunden in {file}. Bitte Datum eingeben:")
-                date_input = input()
-                time = dateparser.parse(date_input, languages=["de", "en"])
-                if time is None:
-                    print(f"Ungültiges Datum: {date_input}")
-                    continue
-                print(f"Datum erkannt: {time}")
-                if 'y' != input("Datum korrekt? (y/n): ").lower():
-                    print("Abgebrochen.")
-                    continue
-                handeingabe_used = True
+            handeingabe_used = False
+            modification_time_used = False
+            if time is None:
+                if handeingabe:
+                    print(f"Kein Datum gefunden in {file}. Bitte Datum eingeben:")
+                    date_input = input()
+                    time = dateparser.parse(date_input, languages=["de", "en"])
+                    if time is None:
+                        print(f"Ungültiges Datum: {date_input}")
+                        continue
+                    print(f"Datum erkannt: {time}")
+                    if 'y' != input("Datum korrekt? (y/n): ").lower():
+                        print("Abgebrochen.")
+                        continue
+                    handeingabe_used = True
+                else:
+                    modification_time = os.path.getmtime(file)
+                    time = datetime.datetime.fromtimestamp(modification_time)
+                    modification_time_used = True
+
+            time -= time_offset
+
+            new_file_name = f"BVD_{time.strftime('%Y%m%d_%H%M%S')}"
+            if handeingabe_used:
+                new_file_name += "h"
+            elif modification_time_used:
+                new_file_name += "e"
+
+            new_file_name += f"_{topic}"
+
+            new_file_name += f"_{file_name[:10]}"
+
+            if time_offset:
+                new_file_name += f"_t{int(abs(time_offset.total_seconds())/60)}"
+
+            count = 0
+            while True:
+                if os.path.exists(os.path.join(os.getcwd(), new_file_name + (f"_{count}" if count>0 else "") + file_extension)):
+                    count += 1
+                else:
+                    break
+            if count > 0:
+                new_file_name += f"_{count}"
+
+            new_file_name += file_extension
+
+            new_file_path = os.path.join(os.getcwd(), new_file_name)
+
+            if os.path.exists(new_file_path):
+                print(f"Datei {new_file_path} existiert bereits. Abgebrochen.")
+                continue
+
+            if copy:
+                print(f"Kopiert {file} nach {new_file_path}")
+                os.system(f'copy "{file}" "{new_file_path}"')
             else:
-                modification_time = os.path.getmtime(file)
-                time = datetime.datetime.fromtimestamp(modification_time)
-                modification_time_used = True
+                print(f"Bennent {file} um in {new_file_path}")
+                os.rename(file, new_file_path)
 
-        time -= time_offset
-
-        new_file_name = f"BVD_{time.strftime('%Y%m%d_%H%M%S')}"
-        if handeingabe_used:
-            new_file_name += "h"
-        elif modification_time_used:
-            new_file_name += "e"
-
-        new_file_name += f"_{topic}"
-
-        new_file_name += f"_{file_name[:10]}"
-
-        if time_offset:
-            new_file_name += f"_t{int(abs(time_offset.total_seconds())/60)}"
-
-        count = 0
-        while True:
-            if os.path.exists(os.path.join(os.getcwd(), new_file_name + (f"_{count}" if count>0 else "") + file_extension)):
-                count += 1
-            else:
-                break
-        if count > 0:
-            new_file_name += f"_{count}"
-
-        new_file_name += file_extension
-
-        new_file_path = os.path.join(os.getcwd(), new_file_name)
-
-        if os.path.exists(new_file_path):
-            print(f"Datei {new_file_path} existiert bereits. Abgebrochen.")
-            continue
-
-        if copy:
-            print(f"Kopiert {file} nach {new_file_path}")
-            os.system(f'copy "{file}" "{new_file_path}"')
-        else:
-            print(f"Bennent {file} um in {new_file_path}")
-            os.rename(file, new_file_path)
-
-    if log:
-        print("\n\n\n")
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
-        print(f'[{datetime.datetime.now()}] BVD abgeschlossen.')
+    finally:
+        if log:
+            print("\n\n\n")
+            sys.stdout.close()
+            sys.stdout = sys.__stdout__
+            print(f'[{datetime.datetime.now()}] BVD abgeschlossen.')

@@ -47,14 +47,16 @@ def download_file(url):
         print(f"Failed to download file. Status: {response.status_code}")
         return None
 
-def add_metadata_to_image(image_data, date_str):
+def add_metadata_to_image(image_data, date_str, timezone="UTC"):
     try:
         image = Image.open(image_data)
     except Exception as e:
         print(f"Error opening image: {e}")
         return
 
-    date_exif = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S").strftime("%Y:%m:%d %H:%M:%S")
+    date = datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+    date = date.replace(tzinfo=datetime.timezone.utc).astimezone(datetime.timezone.utc)
+    date_exif = date.strftime("%Y:%m:%d %H:%M:%S")
 
     exif_data = image.getexif()
 
@@ -70,7 +72,7 @@ def add_metadata_to_image(image_data, date_str):
     image.save(save_path, exif=exif_data)
     print(f"Image saved with date metadata: {date_exif} at {save_path}")
 
-def snapchatexport(topic, json_file_path, log, force):
+def snapchatexport(topic, timezone, json_file_path, log, force):
     if not force:
         print('thema:', topic)
         print('json_file:', json_file_path)
@@ -84,21 +86,22 @@ def snapchatexport(topic, json_file_path, log, force):
         sys.stdout = open('bvd.log', 'a')
         print(f'[{datetime.datetime.now()}] BVD (snapchat) gestartet mit den Parametern: thema={topic}, json_file={json_file_path}, logs={log}')
 
-    with open(json_file_path, 'r') as file:
-        json_data = json.load(file)
+    try:
+        with open(json_file_path, 'r') as file:
+            json_data = json.load(file)
 
-    for entry in json_data:
-        date = entry["Date"].replace(" UTC", "")
-        download_link = entry["Download Link"]
+        for entry in json_data:
+            date = entry["Date"].replace(" UTC", "")
+            download_link = entry["Download Link"]
 
-        image_data = download_file(download_link)
-        if image_data:
-            add_metadata_to_image(image_data, date)
-        else:
-            print(f"Failed to download or process image from {download_link}")
-
-    if log:
-        print("\n\n\n")
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
-        print(f'[{datetime.datetime.now()}] BVD abgeschlossen.')
+            image_data = download_file(download_link)
+            if image_data:
+                add_metadata_to_image(image_data, date, timezone)
+            else:
+                print(f"Failed to download or process image from {download_link}")
+    finally:
+        if log:
+            print("\n\n\n")
+            sys.stdout.close()
+            sys.stdout = sys.__stdout__
+            print(f'[{datetime.datetime.now()}] BVD abgeschlossen.')

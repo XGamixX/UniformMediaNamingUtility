@@ -23,6 +23,7 @@ def parse_args():
 
     snapchat_parser = subparsers.add_parser('snapchat', help='Bilder und Videos von Snapchat umbenennen')
     snapchat_parser.add_argument('--topic', '-t', default='Diverses', help='Zusammenfassende Überschrift der im Download vorhandednen Bilder und Videos (default: Diverses)')
+    snapchat_parser.add_argument('--timezone', '-z', default='Europe/Berlin', help='Zeitzone für die Zeitverschiebung (IANA tz format; default: Europe/Berlin)')
     snapchat_parser.add_argument('--json_file', '-j', required=True, help='Pfad zur JSON-Datei mit den Metadaten')
     snapchat_parser.add_argument('--log', '-l', action='store_true', help='Erstellt ein Logfile mit den umbenannten Dateien (default: kein Logfile)')
     snapchat_parser.add_argument('--force', '-f', action='store_true', help='Erzwingt die Ausführung ohne Bestätigungsaufforderung')
@@ -36,7 +37,7 @@ def main():
     parsed_args = parse_args()
 
     if parsed_args.command == 'snapchat':
-        snapchatexport.snapchatexport(parsed_args.topic, parsed_args.json_file, parsed_args.log, parsed_args.force)
+        snapchatexport.snapchatexport(parsed_args.topic, parsed_args.timezone, parsed_args.json_file, parsed_args.log, parsed_args.force)
     elif parsed_args.command == 'rename':
         rename.rename(parsed_args.topic, parsed_args.timezone, parsed_args.offset_time, parsed_args.copy, parsed_args.manual, parsed_args.bvd_only, parsed_args.log, parsed_args.force)
     else:
