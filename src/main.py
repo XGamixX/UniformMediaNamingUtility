@@ -6,7 +6,7 @@ import snapchatexport
 import rename
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='BVD - Bilder und Videos umbenennen und sortieren')
+    parser = argparse.ArgumentParser(prog='bvd', description='BVD - Bilder und Videos umbenennen und sortieren')
     subparsers = parser.add_subparsers(dest='command', required=True, help='Liste der Befehle')
 
     rename_parser = subparsers.add_parser('rename', help='Bilder und Videos umbenennen')
